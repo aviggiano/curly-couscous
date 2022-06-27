@@ -13,6 +13,7 @@ import {
   tickIndexToPrice,
 } from "@orca-so/whirlpool-sdk";
 import { solToken, usdcToken } from "@orca-so/sdk/dist/constants/tokens";
+import babar from "babar";
 import config from "./config";
 
 function tickSpacing(): number {
@@ -123,7 +124,11 @@ async function visualize(whirlpool: OrcaWhirlpoolClient): Promise<void> {
     tickStart,
     tickEnd
   );
-  console.log(liquidityDistribution);
+  const datapoints: readonly [number, number][] =
+    liquidityDistribution.datapoints.map((datapoint) => [
+      datapoint.price.toNumber(),
+      datapoint.liquidity.toNumber(),
+    ]);
 }
 
 async function main() {
@@ -135,12 +140,9 @@ async function main() {
     throw new Error(`Invalid pool address ${poolAddress}`);
   }
 
-  console.log(poolData.liquidity.toString());
   console.log(`Pool price ${poolData.price.toFixed(4)}`);
 
   const amount = 0.1;
-
-  console.log();
 
   // openPosition(whirlpool, poolAddress, poolData, amount);
   visualize(whirlpool);

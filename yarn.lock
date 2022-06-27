@@ -327,6 +327,11 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.3.tgz#472eaab5f15c1ffdd7f8628bd4c4f753995ec79e"
   integrity sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==
 
+"@types/babar@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@types/babar/-/babar-0.2.1.tgz#e8741673d98782590cd261c7c94cc79c5aa020a9"
+  integrity sha512-6mdQAErkH/LHCLMrpeBSkkqsOdiip/gkiz3tC2GwmJ942wIM8ZVWfCv1SYuKg7CIqdHclLkLnt8xAvg5Bojlfg==
+
 "@types/bn.js@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-5.1.0.tgz#32c5d271503a12653c62cf4d2b45e6eab8cebc68"
@@ -503,6 +508,13 @@ axios@^0.25.0:
   integrity sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==
   dependencies:
     follow-redirects "^1.14.7"
+
+babar@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/babar/-/babar-0.2.2.tgz#a2895907c6a9bab0a9c58cb4887348d2c3fe80ee"
+  integrity sha512-+NovX6/qL10ty1fGePguWMgucpTpsehOJI3z0ucAYVFIQXNXYkXEE53JIJ6b6HGLip/rM5KL/nbQsAdKDEmqLA==
+  dependencies:
+    colors "~0.6.2"
 
 balanced-match@^1.0.0:
   version "1.0.2"
@@ -716,6 +728,11 @@ color-name@~1.1.4:
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz#c2a09a87acbde69543de6f63fa3995c826c536a2"
   integrity sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
+
+colors@~0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/colors/-/colors-0.6.2.tgz#2423fe6678ac0c5dae8852e5d0e5be08c997abcc"
+  integrity sha512-OsSVtHK8Ir8r3+Fxw/b4jS1ZLPXkV6ZxDRJQzeD7qo0SqMXWrHDM71DgYzPMHY8SFJ0Ao+nNU2p1MmwdzKqPrw==
 
 commander@^2.20.3:
   version "2.20.3"
