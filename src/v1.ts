@@ -90,13 +90,11 @@ async function main() {
   }
 
   console.log(poolData.liquidity.toString());
-  console.log(poolData.price.toString());
-  console.log(poolData.tokenVaultAmountA.toString());
-  console.log(poolData.tokenVaultAmountB.toString());
+  console.log(`Pool price ${poolData.price.toFixed(4)}`);
 
   const amount = 0.1;
 
-  openPosition(whirlpool, poolAddress, poolData, amount);
+  // openPosition(whirlpool, poolAddress, poolData, amount);
 }
 
 main();
