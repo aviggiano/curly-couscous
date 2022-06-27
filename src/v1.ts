@@ -39,12 +39,24 @@ async function getPoolData(
   return poolData;
 }
 
+function getTicks(poolData: PoolData): { tickStart: number; tickEnd: number } {
+  const tick = getNearestValidTickIndex(
+    poolData.price,
+    solToken.scale,
+    usdcToken.scale,
+    tickSpacing()
+  );
+  const tickStart = tick - (tickSpacing() * config.strategy.spaces) / 2;
+  const tickEnd = tick + (tickSpacing() * config.strategy.spaces) / 2;
+  return { tickStart, tickEnd };
+}
+
 async function openPosition(
   whirlpool: OrcaWhirlpoolClient,
-  poolAddress: PublicKey,
-  poolData: PoolData,
   amount: number
 ): Promise<void> {
+  const poolAddress = getPoolAddress(whirlpool);
+  const poolData = await getPoolData(whirlpool, poolAddress);
   const tick = getNearestValidTickIndex(
     poolData!.price,
     solToken.scale,
@@ -80,6 +92,40 @@ async function openPosition(
   console.log(openPositionTxId);
 }
 
+async function closePosition(
+  whirlpool: OrcaWhirlpoolClient,
+  positionAddress: PublicKey
+): Promise<void> {
+  const provider = Provider.env();
+  const closePositionQuote = await whirlpool.pool.getClosePositionQuote({
+    positionAddress,
+    refresh: true,
+  });
+  const closePositionTx = await whirlpool.pool.getClosePositionTx({
+    provider,
+    quote: closePositionQuote,
+  });
+  const closePositionTxId = await closePositionTx.buildAndExecute();
+  console.log(closePositionTxId);
+}
+
+async function listPositions(whirlpool: OrcaWhirlpoolClient): Promise<void> {
+  const poolData = await getPoolData(whirlpool, getPoolAddress(whirlpool));
+  const provider = Provider.env();
+}
+
+async function visualize(whirlpool: OrcaWhirlpoolClient): Promise<void> {
+  const poolAddress = getPoolAddress(whirlpool);
+  const poolData = await getPoolData(whirlpool, poolAddress);
+  const { tickStart, tickEnd } = getTicks(poolData!);
+  const liquidityDistribution = await whirlpool.pool.getLiquidityDistribution(
+    poolAddress,
+    tickStart,
+    tickEnd
+  );
+  console.log(liquidityDistribution);
+}
+
 async function main() {
   const whirlpool = new OrcaWhirlpoolClient({ network: OrcaNetwork.MAINNET });
 
@@ -94,7 +140,10 @@ async function main() {
 
   const amount = 0.1;
 
+  console.log();
+
   // openPosition(whirlpool, poolAddress, poolData, amount);
+  visualize(whirlpool);
 }
 
 main();
