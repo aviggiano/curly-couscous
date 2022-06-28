@@ -21,6 +21,7 @@ import {
   closePosition,
   visualize,
   whirlpool,
+  swap,
 } from "./services/orca-old";
 import config from "./config";
 import { getNFTs, getUsdc, getSol } from "./services/token";
@@ -84,7 +85,8 @@ async function main() {
     config.strategy.tickSpacing
   ).publicKey;
 
-  await visualize(whirlpool());
+  const spaces = config.strategy.spaces;
+  await visualize(whirlpool(), spaces * 3);
 
   const pool = await fetcher.getPool(poolAddress);
   if (!pool) return;
@@ -149,10 +151,21 @@ async function main() {
 
   const [usdc, sol] = await Promise.all([getUsdc(), getSol()]);
   console.log(`Balance on wallet: ${sol} SOL + ${usdc} USDC`);
+  const ratio = (sol * price.toNumber()) / (sol * price.toNumber() + usdc);
+  console.log(`Balance ratio: ${(ratio * 100).toFixed(0)}%`);
+
+  if (ratio > 0.75) {
+    const amount = (ratio - 0.5) * sol;
+    await swap("SOL", "USDC", amount);
+  } else if (ratio < 0.25) {
+    const amount = (0.5 - ratio) * usdc;
+    await swap("USDC", "SOL", amount);
+  }
+
   const amountSol = 0.5;
   const minOnWallet = 1;
   if (sol - amountSol > minOnWallet) {
-    await openPosition(whirlpool(), amountSol, config.strategy.spaces);
+    await openPosition(whirlpool(), amountSol, spaces);
   }
 }
 
@@ -160,10 +173,12 @@ async function main() {
   return Promise.resolve()
     .then(async () => {
       await main();
+    })
+    .catch((e) => console.error(e))
+    .then(async () => {
       const timeout = 60e3;
       console.log(`Waiting ${timeout / 1e3} seconds`);
       await new Promise((resolve) => setTimeout(resolve, timeout));
-    })
-    .catch((e) => console.error(e))
-    .then(loop);
+      loop();
+    });
 })();

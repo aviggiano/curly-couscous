@@ -1,7 +1,10 @@
 import "dotenv/config";
 import { Provider } from "@project-serum/anchor";
+import * as fs from "fs";
+import Decimal from "decimal.js";
 import { u64 } from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
+import bs58 from "bs58";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import {
   getNearestValidTickIndex,
   OrcaNetwork,
@@ -13,6 +16,7 @@ import { AddressUtil } from "@orca-so/common-sdk";
 import { solToken, usdcToken } from "@orca-so/sdk/dist/constants/tokens";
 import babar from "babar";
 import config from "../config";
+import { Orca, getOrca, OrcaPoolConfig } from "@orca-so/sdk";
 
 export const ORCA_WHIRLPOOL_PROGRAM_ID = new PublicKey(
   "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc"
@@ -47,7 +51,10 @@ function getPosition(positionMintKey: PublicKey): PublicKey {
   ).publicKey;
 }
 
-function getTicks(poolData: PoolData): { tickStart: number; tickEnd: number } {
+function getTicks(
+  poolData: PoolData,
+  spaces: number
+): { tickStart: number; tickEnd: number } {
   const tickSpacing = config.strategy.tickSpacing;
   const tick = getNearestValidTickIndex(
     poolData.price,
@@ -55,8 +62,8 @@ function getTicks(poolData: PoolData): { tickStart: number; tickEnd: number } {
     usdcToken.scale,
     tickSpacing
   );
-  const tickStart = tick - (tickSpacing * config.strategy.spaces) / 2;
-  const tickEnd = tick + (tickSpacing * config.strategy.spaces) / 2;
+  const tickStart = tick - (tickSpacing * spaces) / 2;
+  const tickEnd = tick + (tickSpacing * spaces) / 2;
   return { tickStart, tickEnd };
 }
 
@@ -86,7 +93,7 @@ export async function openPosition(
   console.log(
     `Opening position between prices ${priceStart.toFixed(
       4
-    )} and ${priceEnd.toFixed(4)}`
+    )} and ${priceEnd.toFixed(4)} with ${amountSol} SOL`
   );
 
   const provider = Provider.env();
@@ -123,10 +130,13 @@ export async function closePosition(
   console.log(`Tx: ${closePositionTxIds}`);
 }
 
-export async function visualize(whirlpool: OrcaWhirlpoolClient): Promise<void> {
+export async function visualize(
+  whirlpool: OrcaWhirlpoolClient,
+  spaces: number
+): Promise<void> {
   const poolAddress = getPoolAddress(whirlpool);
   const poolData = await getPoolData(whirlpool, poolAddress);
-  const { tickStart, tickEnd } = getTicks(poolData!);
+  const { tickStart, tickEnd } = getTicks(poolData!, spaces);
   const liquidityDistribution = await whirlpool.pool.getLiquidityDistribution(
     poolAddress,
     tickStart,
@@ -142,4 +152,43 @@ export async function visualize(whirlpool: OrcaWhirlpoolClient): Promise<void> {
 
 export function whirlpool(): OrcaWhirlpoolClient {
   return new OrcaWhirlpoolClient({ network: OrcaNetwork.MAINNET });
+}
+
+export async function swap(
+  from: "USDC" | "SOL",
+  to: "USDC" | "SOL",
+  amount: number,
+  slippage?: number
+) {
+  const connection = new Connection(config.rpc.endpoint, "singleGossip");
+  const orca = getOrca(connection);
+
+  console.log("Swapping");
+  const poolConfig = OrcaPoolConfig.SOL_USDC;
+  const pool = orca.getPool(poolConfig);
+  const inputToken = from === "USDC" ? pool.getTokenB() : pool.getTokenA();
+  const inputAmount = new Decimal(amount);
+  const quote = await pool.getQuote(
+    inputToken,
+    inputAmount,
+    slippage ? new Decimal(slippage) : undefined
+  );
+  const outputAmount = quote.getMinOutputAmount();
+
+  console.log(
+    `Swap ${inputAmount.toString()} ${from} for ${outputAmount.toNumber()} ${to} (slippage ${
+      slippage ? `${slippage * 100}%` : "default"
+    })`
+  );
+  const privateKey = Uint8Array.from(
+    JSON.parse(fs.readFileSync(process.env.ANCHOR_WALLET!, "utf-8"))
+  );
+  const swapPayload = await pool.swap(
+    Keypair.fromSecretKey(privateKey),
+    inputToken,
+    inputAmount,
+    outputAmount
+  );
+  const swapTxId = await swapPayload.execute();
+  console.log(`Tx: ${swapTxId}`);
 }
