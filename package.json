@@ -4,7 +4,8 @@
   "description": "Concentrated liquidity tools",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/index.ts",
+    "postinstall": "bash scripts/create-secrets.sh"
   },
   "repository": "git@github.com:aviggiano/curly-couscous.git",
   "license": "MIT",
