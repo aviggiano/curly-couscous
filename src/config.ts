@@ -5,7 +5,7 @@ export default {
     endpoint: "https://api.mainnet-beta.solana.com",
   },
   strategy: {
-    spaces: 10,
+    spaces: 4,
     tickSpacing: 64,
   },
 };

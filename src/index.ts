@@ -16,10 +16,14 @@ import {
   PDAUtil,
 } from "@orca-so/whirlpools-sdk";
 import { solToken, usdcToken } from "@orca-so/sdk/dist/constants/tokens";
-import { closePosition, whirlpool } from "./services/orca-old";
-import babar from "babar";
+import {
+  openPosition,
+  closePosition,
+  visualize,
+  whirlpool,
+} from "./services/orca-old";
 import config from "./config";
-import { getNFTs } from "./services/token";
+import { getNFTs, getUsdc, getSol } from "./services/token";
 
 async function getFees(
   ctx: WhirlpoolContext,
@@ -33,7 +37,6 @@ async function getFees(
     poolAddress,
     TickUtil.getStartTickIndex(position.tickLowerIndex, pool.tickSpacing)
   );
-  console.log(tickArrayPda);
 
   const tickArrayData = (await fetcher.getTickArray(
     tickArrayPda.publicKey
@@ -81,6 +84,8 @@ async function main() {
     config.strategy.tickSpacing
   ).publicKey;
 
+  await visualize(whirlpool());
+
   const pool = await fetcher.getPool(poolAddress);
   if (!pool) return;
 
@@ -92,7 +97,6 @@ async function main() {
   console.log(`Pool price ${price.toFixed(4)}`);
 
   const nfts = await getNFTs();
-  console.log(nfts);
 
   const positions = await Promise.all(
     nfts.map((nft) => {
@@ -134,16 +138,32 @@ async function main() {
 
         console.log(`Fees: ${feesTotal.toFixed(4)} USD`);
 
-        await closePosition(whirlpool(), position.positionMint);
+        await closePosition(
+          whirlpool(),
+          PDAUtil.getPosition(ctx.program.programId, position.positionMint)
+            .publicKey
+        );
+        console.log(`Position ${position.positionMint.toBase58()} closed`);
       })
   );
 
-  // // const amountSol = 0.1;
-  // // openPosition(whirlpool, amountSol);
-  // // visualize(whirlpool);
-  // const positions = await listPositions();
-  // console.log(positions);
-  // // await closePositions(whirlpool, [positions[0]]);
+  const [usdc, sol] = await Promise.all([getUsdc(), getSol()]);
+  console.log(`Balance on wallet: ${sol} SOL + ${usdc} USDC`);
+  const amountSol = 0.5;
+  const minOnWallet = 1;
+  if (sol - amountSol > minOnWallet) {
+    await openPosition(whirlpool(), amountSol, config.strategy.spaces);
+  }
 }
 
-main();
+(function loop(): unknown {
+  return Promise.resolve()
+    .then(async () => {
+      await main();
+      const timeout = 60e3;
+      console.log(`Waiting ${timeout / 1e3} seconds`);
+      await new Promise((resolve) => setTimeout(resolve, timeout));
+    })
+    .catch((e) => console.error(e))
+    .then(loop);
+})();

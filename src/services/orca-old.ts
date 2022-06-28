@@ -60,9 +60,10 @@ function getTicks(poolData: PoolData): { tickStart: number; tickEnd: number } {
   return { tickStart, tickEnd };
 }
 
-async function openPosition(
+export async function openPosition(
   whirlpool: OrcaWhirlpoolClient,
-  amountSol: number
+  amountSol: number,
+  spaces: number
 ): Promise<void> {
   const tickSpacing = config.strategy.tickSpacing;
   const poolAddress = getPoolAddress(whirlpool);
@@ -73,9 +74,8 @@ async function openPosition(
     usdcToken.scale,
     tickSpacing
   );
-  const tickStart = tick - (tickSpacing * config.strategy.spaces) / 2;
-  const tickEnd = tick + (tickSpacing * config.strategy.spaces) / 2;
-  console.log(tick, tickStart, tickEnd);
+  const tickStart = tick - (tickSpacing * spaces) / 2;
+  const tickEnd = tick + (tickSpacing * spaces) / 2;
 
   const priceStart = tickIndexToPrice(
     tickStart,
@@ -83,7 +83,11 @@ async function openPosition(
     usdcToken.scale
   );
   const priceEnd = tickIndexToPrice(tickEnd, solToken.scale, usdcToken.scale);
-  console.log(priceStart, priceEnd);
+  console.log(
+    `Opening position between prices ${priceStart.toFixed(
+      4
+    )} and ${priceEnd.toFixed(4)}`
+  );
 
   const provider = Provider.env();
   const openPositionQuote = await whirlpool.pool.getOpenPositionQuote({
@@ -98,8 +102,8 @@ async function openPosition(
     provider,
     quote: openPositionQuote,
   });
-  const openPositionTxId = await openPositionTx.tx.buildAndExecute();
-  console.log(openPositionTxId);
+  const [openPositionTxId] = await openPositionTx.tx.buildAndExecute();
+  console.log(`Tx: ${openPositionTxId}`);
 }
 
 export async function closePosition(
@@ -116,10 +120,10 @@ export async function closePosition(
     quote,
   });
   const closePositionTxIds = await closePositionTx.buildAndExecute();
-  console.log(closePositionTxIds);
+  console.log(`Tx: ${closePositionTxIds}`);
 }
 
-async function visualize(whirlpool: OrcaWhirlpoolClient): Promise<void> {
+export async function visualize(whirlpool: OrcaWhirlpoolClient): Promise<void> {
   const poolAddress = getPoolAddress(whirlpool);
   const poolData = await getPoolData(whirlpool, poolAddress);
   const { tickStart, tickEnd } = getTicks(poolData!);
