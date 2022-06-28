@@ -4,7 +4,7 @@
   "description": "Concentrated liquidity tools",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/v1.ts"
+    "start": "ts-node src/index.ts"
   },
   "repository": "git@github.com:aviggiano/curly-couscous.git",
   "license": "MIT",
