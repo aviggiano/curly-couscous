@@ -4,6 +4,7 @@ import { u64 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import {
   getNearestValidTickIndex,
+  OrcaNetwork,
   OrcaWhirlpoolClient,
   PoolData,
   tickIndexToPrice,
@@ -101,30 +102,20 @@ async function openPosition(
   console.log(openPositionTxId);
 }
 
-async function closePositions(
+export async function closePosition(
   whirlpool: OrcaWhirlpoolClient,
-  positions: PublicKey[]
+  position: PublicKey
 ): Promise<void> {
   const provider = Provider.env();
-  const closePositionQuotes = await Promise.all(
-    positions.map((position) =>
-      whirlpool.pool.getClosePositionQuote({
-        positionAddress: position,
-        refresh: true,
-      })
-    )
-  );
-  const closePositionTxs = await Promise.all(
-    closePositionQuotes.map((quote) =>
-      whirlpool.pool.getClosePositionTx({
-        provider,
-        quote,
-      })
-    )
-  );
-  const closePositionTxIds = await Promise.all(
-    closePositionTxs.map((tx) => tx.buildAndExecute())
-  );
+  const quote = await whirlpool.pool.getClosePositionQuote({
+    positionAddress: position,
+    refresh: true,
+  });
+  const closePositionTx = await whirlpool.pool.getClosePositionTx({
+    provider,
+    quote,
+  });
+  const closePositionTxIds = await closePositionTx.buildAndExecute();
   console.log(closePositionTxIds);
 }
 
@@ -143,4 +134,8 @@ async function visualize(whirlpool: OrcaWhirlpoolClient): Promise<void> {
       datapoint.liquidity.toNumber(),
     ]);
   console.log(babar(datapoints));
+}
+
+export function whirlpool(): OrcaWhirlpoolClient {
+  return new OrcaWhirlpoolClient({ network: OrcaNetwork.MAINNET });
 }

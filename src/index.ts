@@ -8,9 +8,7 @@ import {
   TickUtil,
   TickArrayData,
   TickArrayUtil,
-  WhirlpoolsConfigData,
   WhirlpoolData,
-  collectRewardsQuote,
   PositionData,
   ORCA_WHIRLPOOLS_CONFIG,
   collectFeesQuote,
@@ -18,6 +16,7 @@ import {
   PDAUtil,
 } from "@orca-so/whirlpools-sdk";
 import { solToken, usdcToken } from "@orca-so/sdk/dist/constants/tokens";
+import { closePosition, whirlpool } from "./services/orca-old";
 import babar from "babar";
 import config from "./config";
 import { getNFTs } from "./services/token";
@@ -105,9 +104,21 @@ async function main() {
     })
   );
 
-  const rewards = await Promise.all(
-    (positions.filter((position) => position) as PositionData[]).map(
-      async (position) => {
+  await Promise.all(
+    (positions.filter((position) => position) as PositionData[])
+      .filter((position) => {
+        const isEarningYield =
+          position.tickLowerIndex < pool.tickCurrentIndex &&
+          pool.tickCurrentIndex < position.tickUpperIndex;
+        if (!isEarningYield) {
+          console.log(
+            `Position ${position.positionMint.toBase58()} is not earning yield`
+          );
+        }
+        return !isEarningYield;
+      })
+      .map(async (position) => {
+        console.log(`Closing position ${position.positionMint.toBase58()}`);
         const { feesSol, feesUsdc } = await getFees(
           ctx,
           fetcher,
@@ -122,11 +133,10 @@ async function main() {
         const feesTotal = price.toNumber() * feesSol + feesUsdc;
 
         console.log(`Fees: ${feesTotal.toFixed(4)} USD`);
-        return feesTotal;
-      }
-    )
+
+        await closePosition(whirlpool(), position.positionMint);
+      })
   );
-  console.log(rewards);
 
   // // const amountSol = 0.1;
   // // openPosition(whirlpool, amountSol);
