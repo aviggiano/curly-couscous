@@ -6,5 +6,6 @@ export default {
   },
   strategy: {
     spaces: 10,
+    tickSpacing: 64,
   },
 };

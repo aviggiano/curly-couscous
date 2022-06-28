@@ -11,6 +11,7 @@
   "dependencies": {
     "@orca-so/sdk": "^1.2.25",
     "@orca-so/whirlpool-sdk": "^0.3.0",
+    "@orca-so/whirlpools-sdk": "^0.2.3",
     "@types/dotenv": "^8.2.0",
     "babar": "^0.2.2",
     "bs58": "^5.0.0",

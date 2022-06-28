@@ -1,12 +1,9 @@
 import "dotenv/config";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { Connection } from "@solana/web3.js";
 import { Provider } from "@project-serum/anchor";
 import { u64 } from "@solana/spl-token";
-import { PublicKey, clusterApiUrl } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import {
   getNearestValidTickIndex,
-  OrcaNetwork,
   OrcaWhirlpoolClient,
   PoolData,
   tickIndexToPrice,
@@ -14,21 +11,17 @@ import {
 import { AddressUtil } from "@orca-so/common-sdk";
 import { solToken, usdcToken } from "@orca-so/sdk/dist/constants/tokens";
 import babar from "babar";
-import config from "./config";
+import config from "../config";
 
 export const ORCA_WHIRLPOOL_PROGRAM_ID = new PublicKey(
   "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc"
 );
 
-function tickSpacing(): number {
-  return 64;
-}
-
 function getPoolAddress(whirlpool: OrcaWhirlpoolClient): PublicKey {
   const poolAddress = whirlpool.pool.derivePDA(
     solToken.mint,
     usdcToken.mint,
-    tickSpacing()
+    config.strategy.tickSpacing
   ).publicKey;
   return poolAddress;
 }
@@ -54,14 +47,15 @@ function getPosition(positionMintKey: PublicKey): PublicKey {
 }
 
 function getTicks(poolData: PoolData): { tickStart: number; tickEnd: number } {
+  const tickSpacing = config.strategy.tickSpacing;
   const tick = getNearestValidTickIndex(
     poolData.price,
     solToken.scale,
     usdcToken.scale,
-    tickSpacing()
+    tickSpacing
   );
-  const tickStart = tick - (tickSpacing() * config.strategy.spaces) / 2;
-  const tickEnd = tick + (tickSpacing() * config.strategy.spaces) / 2;
+  const tickStart = tick - (tickSpacing * config.strategy.spaces) / 2;
+  const tickEnd = tick + (tickSpacing * config.strategy.spaces) / 2;
   return { tickStart, tickEnd };
 }
 
@@ -69,16 +63,17 @@ async function openPosition(
   whirlpool: OrcaWhirlpoolClient,
   amountSol: number
 ): Promise<void> {
+  const tickSpacing = config.strategy.tickSpacing;
   const poolAddress = getPoolAddress(whirlpool);
   const poolData = await getPoolData(whirlpool, poolAddress);
   const tick = getNearestValidTickIndex(
     poolData!.price,
     solToken.scale,
     usdcToken.scale,
-    tickSpacing()
+    tickSpacing
   );
-  const tickStart = tick - (tickSpacing() * config.strategy.spaces) / 2;
-  const tickEnd = tick + (tickSpacing() * config.strategy.spaces) / 2;
+  const tickStart = tick - (tickSpacing * config.strategy.spaces) / 2;
+  const tickEnd = tick + (tickSpacing * config.strategy.spaces) / 2;
   console.log(tick, tickStart, tickEnd);
 
   const priceStart = tickIndexToPrice(
@@ -133,26 +128,6 @@ async function closePositions(
   console.log(closePositionTxIds);
 }
 
-async function listPositions(): Promise<PublicKey[]> {
-  const provider = Provider.env();
-
-  const connection = new Connection(clusterApiUrl("mainnet-beta"), "confirmed");
-
-  const { value } = await connection.getParsedTokenAccountsByOwner(
-    provider.wallet.publicKey,
-    {
-      programId: TOKEN_PROGRAM_ID,
-    }
-  );
-  const positionNFTs = value
-    .map((e) => e.account.data.parsed.info)
-    .filter((token) => token.tokenAmount.uiAmount === 1)
-    .map((token) => token.mint)
-    .map((token) => getPosition(new PublicKey(token)));
-
-  return positionNFTs;
-}
-
 async function visualize(whirlpool: OrcaWhirlpoolClient): Promise<void> {
   const poolAddress = getPoolAddress(whirlpool);
   const poolData = await getPoolData(whirlpool, poolAddress);
@@ -169,24 +144,3 @@ async function visualize(whirlpool: OrcaWhirlpoolClient): Promise<void> {
     ]);
   console.log(babar(datapoints));
 }
-
-async function main() {
-  const whirlpool = new OrcaWhirlpoolClient({ network: OrcaNetwork.MAINNET });
-
-  const poolAddress = getPoolAddress(whirlpool);
-  const poolData = await getPoolData(whirlpool, poolAddress);
-  if (!poolData) {
-    throw new Error(`Invalid pool address ${poolAddress}`);
-  }
-
-  console.log(`Pool price ${poolData.price.toFixed(4)}`);
-
-  // const amountSol = 0.1;
-  // openPosition(whirlpool, amountSol);
-  // visualize(whirlpool);
-  const positions = await listPositions();
-  console.log(positions);
-  // await closePositions(whirlpool, [positions[0]]);
-}
-
-main();
