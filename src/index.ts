@@ -69,6 +69,7 @@ async function getFees(
 }
 
 async function main() {
+  console.log(__dirname);
   const provider = Provider.env();
   const ctx = WhirlpoolContext.withProvider(
     provider,
