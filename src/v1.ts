@@ -186,7 +186,7 @@ async function main() {
   // visualize(whirlpool);
   const positions = await listPositions();
   console.log(positions);
-  await closePositions(whirlpool, [positions[0]]);
+  // await closePositions(whirlpool, [positions[0]]);
 }
 
 main();
