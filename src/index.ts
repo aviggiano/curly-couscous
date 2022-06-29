@@ -1,4 +1,5 @@
 import "dotenv/config";
+import express from "express";
 import { Provider } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import {
@@ -69,7 +70,11 @@ async function getFees(
 }
 
 async function main() {
-  console.log(__dirname);
+  const PORT = process.env.PORT || 3000;
+  express
+    .get("/", (req, res) => res.send({ success: true }))
+    .listen(PORT, () => console.log(`Listening to port ${PORT}`));
+
   const provider = Provider.env();
   const ctx = WhirlpoolContext.withProvider(
     provider,
