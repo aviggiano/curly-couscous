@@ -155,11 +155,12 @@ async function main() {
   const ratio = (sol * price.toNumber()) / (sol * price.toNumber() + usdc);
   console.log(`Balance ratio: ${(ratio * 100).toFixed(0)}%`);
 
-  if (ratio > 0.6) {
-    const amount = (ratio - 0.5) * sol;
+  const balancedRatio = 0.5;
+  if (ratio > 2 / 3) {
+    const amount = (ratio - balancedRatio) * sol;
     await swap("SOL", "USDC", amount);
-  } else if (ratio < 0.4) {
-    const amount = (0.5 - ratio) * usdc;
+  } else if (ratio < 1 / 3) {
+    const amount = (balancedRatio - ratio) * usdc;
     await swap("USDC", "SOL", amount);
   }
 
