@@ -34,22 +34,29 @@ async function getFees(
   poolAddress: PublicKey,
   position: PositionData
 ): Promise<{ feesSol: number; feesUsdc: number }> {
-  const tickArrayPda = PDAUtil.getTickArray(
+  const tickArrayPdaLower = PDAUtil.getTickArray(
     ctx.program.programId,
     poolAddress,
     TickUtil.getStartTickIndex(position.tickLowerIndex, pool.tickSpacing)
   );
+  const tickArrayPdaUpper = PDAUtil.getTickArray(
+    ctx.program.programId,
+    poolAddress,
+    TickUtil.getStartTickIndex(position.tickUpperIndex, pool.tickSpacing)
+  );
+  console.log(tickArrayPdaLower, tickArrayPdaUpper);
 
-  const tickArrayData = (await fetcher.getTickArray(
-    tickArrayPda.publicKey
-  )) as TickArrayData;
+  const [tickArrayLowerData, tickArrayUpperData] = await Promise.all([
+    fetcher.getTickArray(tickArrayPdaLower.publicKey) as Promise<TickArrayData>,
+    fetcher.getTickArray(tickArrayPdaUpper.publicKey) as Promise<TickArrayData>,
+  ]);
   const tickLower = TickArrayUtil.getTickFromArray(
-    tickArrayData,
+    tickArrayLowerData,
     position.tickLowerIndex,
     pool.tickSpacing
   );
   const tickUpper = TickArrayUtil.getTickFromArray(
-    tickArrayData,
+    tickArrayUpperData,
     position.tickUpperIndex,
     pool.tickSpacing
   );
@@ -141,11 +148,11 @@ async function main() {
 
         console.log(`Fees: ${feesTotal.toFixed(4)} USD`);
 
-        await closePosition(
-          whirlpool(),
-          PDAUtil.getPosition(ctx.program.programId, position.positionMint)
-            .publicKey
-        );
+        // await closePosition(
+        //   whirlpool(),
+        //   PDAUtil.getPosition(ctx.program.programId, position.positionMint)
+        //     .publicKey
+        // );
         console.log(`Position ${position.positionMint.toBase58()} closed`);
       })
   );
@@ -167,7 +174,7 @@ async function main() {
   const amountSol = 0.5;
   const minOnWallet = 0.2;
   if (sol - amountSol > minOnWallet) {
-    await openPosition(whirlpool(), amountSol, spaces);
+    // await openPosition(whirlpool(), amountSol, spaces);
   } else {
     console.log("Not opening new positions due to low SOL wallet balance");
   }

@@ -143,10 +143,12 @@ export async function visualize(
     tickEnd
   );
   const datapoints: readonly [number, number][] =
-    liquidityDistribution.datapoints.map((datapoint) => [
-      datapoint.price.toNumber(),
-      datapoint.liquidity.toNumber(),
-    ]);
+    liquidityDistribution.datapoints
+      .filter((datapoint) => datapoint.liquidity.greaterThan(0))
+      .map((datapoint) => [
+        datapoint.price.toNumber(),
+        datapoint.liquidity.toNumber(),
+      ]);
   console.log(babar(datapoints));
 }
 
