@@ -44,7 +44,6 @@ async function getFees(
     poolAddress,
     TickUtil.getStartTickIndex(position.tickUpperIndex, pool.tickSpacing)
   );
-  console.log(tickArrayPdaLower, tickArrayPdaUpper);
 
   const [tickArrayLowerData, tickArrayUpperData] = await Promise.all([
     fetcher.getTickArray(tickArrayPdaLower.publicKey) as Promise<TickArrayData>,
