@@ -71,7 +71,7 @@ async function getFees(
 
 async function main() {
   const PORT = process.env.PORT || 3000;
-  express
+  express()
     .get("/", (_req: any, res: any) => res.send({ success: true }))
     .listen(PORT, () => console.log(`Listening to port ${PORT}`));
 

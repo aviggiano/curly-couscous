@@ -1,4 +1,5 @@
 .env
 node_modules/
+key.json
 keypair.json
 *.log
