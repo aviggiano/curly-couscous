@@ -147,11 +147,11 @@ async function main() {
 
         console.log(`Fees: ${feesTotal.toFixed(4)} USD`);
 
-        // await closePosition(
-        //   whirlpool(),
-        //   PDAUtil.getPosition(ctx.program.programId, position.positionMint)
-        //     .publicKey
-        // );
+        await closePosition(
+          whirlpool(),
+          PDAUtil.getPosition(ctx.program.programId, position.positionMint)
+            .publicKey
+        );
         console.log(`Position ${position.positionMint.toBase58()} closed`);
       })
   );
@@ -173,7 +173,7 @@ async function main() {
   const amountSol = 0.5;
   const minOnWallet = 0.2;
   if (sol - amountSol > minOnWallet) {
-    // await openPosition(whirlpool(), amountSol, spaces);
+    await openPosition(whirlpool(), amountSol, spaces);
   } else {
     console.log("Not opening new positions due to low SOL wallet balance");
   }
