@@ -193,10 +193,12 @@ async function main() {
     amount = (ratio - balancedRatio) * sol;
     from = "SOL";
     to = "USDC";
+    shouldSwap = true;
   } else if (ratio < 1 / 3) {
     amount = (balancedRatio - ratio) * usdc;
     from = "USDC";
     to = "SOL";
+    shouldSwap = true;
   }
   if (shouldSwap) {
     await swap(from, to, amount);
