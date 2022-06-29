@@ -220,7 +220,7 @@ async function main() {
     const datapoint: AnalyticsOpen = {
       timestamp: new Date(),
       price: price.toNumber(),
-      amount,
+      amount: amountSol,
       sol,
       usdc,
       operation: "open",
