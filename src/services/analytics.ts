@@ -24,6 +24,7 @@ export interface Analytics {
   price: number;
   sol: number;
   usdc: number;
+  total: number;
   operation: "open" | "close" | "swap";
 }
 

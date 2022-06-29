@@ -125,7 +125,8 @@ async function main() {
   );
 
   const [usdc, sol] = await Promise.all([getUsdc(), getSol()]);
-  console.log(`Balance on wallet: ${sol} SOL + ${usdc} USDC`);
+  const total = price.mul(sol).add(usdc).toNumber();
+  console.log(`Balance on wallet: ${sol} SOL + ${usdc} USDC (${total} USD)`);
 
   await Promise.all(
     (positions.filter((position) => position) as PositionData[])
@@ -169,6 +170,7 @@ async function main() {
           price: price.toNumber(),
           sol,
           usdc,
+          total,
           feesSol,
           feesUsdc,
           feesTotal,
@@ -204,6 +206,7 @@ async function main() {
       price: price.toNumber(),
       sol,
       usdc,
+      total,
       amount,
       from,
       to,
@@ -223,6 +226,7 @@ async function main() {
       amount: amountSol,
       sol,
       usdc,
+      total,
       operation: "open",
     };
     await analytics.save(datapoint);
