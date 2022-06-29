@@ -70,11 +70,6 @@ async function getFees(
 }
 
 async function main() {
-  const PORT = process.env.PORT || 3000;
-  express()
-    .get("/", (_req: any, res: any) => res.send({ success: true }))
-    .listen(PORT, () => console.log(`Listening to port ${PORT}`));
-
   const provider = Provider.env();
   const ctx = WhirlpoolContext.withProvider(
     provider,
@@ -176,6 +171,11 @@ async function main() {
     console.log("Not opening new positions due to low SOL wallet balance");
   }
 }
+
+const PORT = process.env.PORT || 3000;
+express()
+  .get("/", (_req: any, res: any) => res.send({ success: true }))
+  .listen(PORT, () => console.log(`Listening to port ${PORT}`));
 
 (function loop(): unknown {
   return Promise.resolve()
