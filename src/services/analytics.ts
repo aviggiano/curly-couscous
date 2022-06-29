@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export interface AnalyticsOpen extends Analytics {
   amount: number;
   operation: "open";
@@ -27,5 +29,5 @@ export interface Analytics {
 
 export async function save(data: Analytics): Promise<void> {
   console.log(`Saving analytics datapoint`);
-  console.log(data);
+  await axios.post(process.env.API_URL!, data);
 }
