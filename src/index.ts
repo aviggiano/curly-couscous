@@ -218,7 +218,7 @@ async function main() {
   const amountSol = 0.5;
   const minOnWallet = 0.2;
   if (sol - amountSol > minOnWallet) {
-    await openPosition(whirlpool(), amountSol, spaces);
+    const { from, to } = await openPosition(whirlpool(), amountSol, spaces);
 
     const datapoint: AnalyticsOpen = {
       timestamp: new Date(),
@@ -227,6 +227,8 @@ async function main() {
       sol,
       usdc,
       total,
+      from,
+      to,
       operation: "open",
     };
     await analytics.save(datapoint);

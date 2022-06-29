@@ -71,7 +71,7 @@ export async function openPosition(
   whirlpool: OrcaWhirlpoolClient,
   amountSol: number,
   spaces: number
-): Promise<void> {
+): Promise<{ from: number; to: number }> {
   const tickSpacing = config.strategy.tickSpacing;
   const poolAddress = getPoolAddress(whirlpool);
   const poolData = await getPoolData(whirlpool, poolAddress);
@@ -111,6 +111,7 @@ export async function openPosition(
   });
   const [openPositionTxId] = await openPositionTx.tx.buildAndExecute();
   console.log(`Tx: ${openPositionTxId}`);
+  return { from: priceStart.toNumber(), to: priceEnd.toNumber() };
 }
 
 export async function closePosition(

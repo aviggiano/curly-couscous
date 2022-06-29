@@ -2,6 +2,8 @@ import axios from "axios";
 
 export interface AnalyticsOpen extends Analytics {
   amount: number;
+  from: number;
+  to: number;
   operation: "open";
 }
 
