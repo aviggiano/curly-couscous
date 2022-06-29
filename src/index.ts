@@ -26,6 +26,13 @@ import {
 } from "./services/orca-old";
 import config from "./config";
 import { getNFTs, getUsdc, getSol } from "./services/token";
+import * as analytics from "./services/analytics";
+import {
+  Analytics,
+  AnalyticsClose,
+  AnalyticsOpen,
+  AnalyticsSwap,
+} from "./services/analytics";
 
 async function getFees(
   ctx: WhirlpoolContext,
@@ -117,6 +124,9 @@ async function main() {
     })
   );
 
+  const [usdc, sol] = await Promise.all([getUsdc(), getSol()]);
+  console.log(`Balance on wallet: ${sol} SOL + ${usdc} USDC`);
+
   await Promise.all(
     (positions.filter((position) => position) as PositionData[])
       .filter((position) => {
@@ -153,27 +163,69 @@ async function main() {
             .publicKey
         );
         console.log(`Position ${position.positionMint.toBase58()} closed`);
+
+        const datapoint: AnalyticsClose = {
+          timestamp: new Date(),
+          price: price.toNumber(),
+          sol,
+          usdc,
+          feesSol,
+          feesUsdc,
+          feesTotal,
+          operation: "close",
+        };
+        await analytics.save(datapoint);
       })
   );
 
-  const [usdc, sol] = await Promise.all([getUsdc(), getSol()]);
-  console.log(`Balance on wallet: ${sol} SOL + ${usdc} USDC`);
   const ratio = (sol * price.toNumber()) / (sol * price.toNumber() + usdc);
   console.log(`Balance ratio: ${(ratio * 100).toFixed(0)}%`);
 
+  let shouldSwap = false,
+    from = "" as "USDC" | "SOL",
+    to = "" as "USDC" | "SOL",
+    amount = NaN;
+
   const balancedRatio = 0.5;
   if (ratio > 2 / 3) {
-    const amount = (ratio - balancedRatio) * sol;
-    await swap("SOL", "USDC", amount);
+    amount = (ratio - balancedRatio) * sol;
+    from = "SOL";
+    to = "USDC";
   } else if (ratio < 1 / 3) {
-    const amount = (balancedRatio - ratio) * usdc;
-    await swap("USDC", "SOL", amount);
+    amount = (balancedRatio - ratio) * usdc;
+    from = "USDC";
+    to = "SOL";
+  }
+  if (shouldSwap) {
+    await swap(from, to, amount);
+
+    const datapoint: AnalyticsSwap = {
+      timestamp: new Date(),
+      price: price.toNumber(),
+      sol,
+      usdc,
+      amount,
+      from,
+      to,
+      operation: "swap",
+    };
+    await analytics.save(datapoint);
   }
 
   const amountSol = 0.5;
   const minOnWallet = 0.2;
   if (sol - amountSol > minOnWallet) {
     await openPosition(whirlpool(), amountSol, spaces);
+
+    const datapoint: AnalyticsOpen = {
+      timestamp: new Date(),
+      price: price.toNumber(),
+      amount,
+      sol,
+      usdc,
+      operation: "open",
+    };
+    await analytics.save(datapoint);
   } else {
     console.log("Not opening new positions due to low SOL wallet balance");
   }
