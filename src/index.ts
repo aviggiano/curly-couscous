@@ -244,18 +244,22 @@ console.log("curly-couscous");
 const PORT = process.env.PORT || 3000;
 express()
   .get("/", (_req: any, res: any) => res.send({ success: true }))
-  .listen(PORT, () => console.log(`Listening to port ${PORT}`));
+  .listen(PORT, async () => {
+    console.log(`Listening to port ${PORT}`);
 
-(function loop(): unknown {
-  return Promise.resolve()
-    .then(async () => {
-      await main();
-    })
-    .catch((e) => console.error(e))
-    .then(async () => {
-      const timeout = 60e3;
-      console.log(`Waiting ${timeout / 1e3} seconds`);
-      await new Promise((resolve) => setTimeout(resolve, timeout));
-      loop();
-    });
-})();
+    await analytics.init();
+
+    (function loop(): unknown {
+      return Promise.resolve()
+        .then(async () => {
+          await main();
+        })
+        .catch((e) => console.error(e))
+        .then(async () => {
+          const timeout = 60e3;
+          console.log(`Waiting ${timeout / 1e3} seconds`);
+          await new Promise((resolve) => setTimeout(resolve, timeout));
+          loop();
+        });
+    })();
+  });
