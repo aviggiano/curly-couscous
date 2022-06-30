@@ -44,8 +44,11 @@ export async function init(): Promise<void> {
 }
 
 export async function save(data: Analytics): Promise<void> {
-  const url = process.env.API_URL!;
-  console.log(`Saving analytics datapoint`, url, JSON.stringify(data));
+  console.log(
+    `Saving analytics datapoint`,
+    config.sheets.sheetTitle,
+    JSON.stringify(data)
+  );
 
   await sheets.append(state.doc!, config.sheets.sheetTitle, [
     data as unknown as Data,
