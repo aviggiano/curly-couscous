@@ -31,6 +31,7 @@ export interface Analytics {
 }
 
 export async function save(data: Analytics): Promise<void> {
-  console.log(`Saving analytics datapoint`);
-  await axios.post(process.env.API_URL!, data);
+  const url = process.env.API_URL!;
+  console.log(`Saving analytics datapoint`, url, data);
+  await axios.post(url, data);
 }
