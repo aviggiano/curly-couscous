@@ -8,4 +8,8 @@ export default {
     spaces: 4,
     tickSpacing: 64,
   },
+  sheets: {
+    spreadsheetId: process.env.SPREADSHEET_ID!,
+    sheetTitle: "Orca",
+  },
 };

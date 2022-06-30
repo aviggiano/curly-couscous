@@ -1,4 +1,7 @@
-import axios from "axios";
+import * as sheets from "./sheets";
+import config from "../config";
+import { GoogleSpreadsheet } from "google-spreadsheet";
+import { Data } from "./sheets";
 
 export interface AnalyticsOpen extends Analytics {
   amount: number;
@@ -30,8 +33,21 @@ export interface Analytics {
   operation: "open" | "close" | "swap";
 }
 
+const state: {
+  doc?: GoogleSpreadsheet;
+} = {
+  doc: undefined,
+};
+
+export async function init(): Promise<void> {
+  state.doc = await sheets.init(config.sheets.spreadsheetId);
+}
+
 export async function save(data: Analytics): Promise<void> {
   const url = process.env.API_URL!;
-  console.log(`Saving analytics datapoint`, url, data);
-  await axios.post(url, data);
+  console.log(`Saving analytics datapoint`, url, JSON.stringify(data));
+
+  await sheets.append(state.doc!, config.sheets.sheetTitle, [
+    data as unknown as Data,
+  ]);
 }
