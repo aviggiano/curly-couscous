@@ -239,6 +239,8 @@ async function main() {
   }
 }
 
+console.log("curly-couscous");
+
 const PORT = process.env.PORT || 3000;
 express()
   .get("/", (_req: any, res: any) => res.send({ success: true }))
