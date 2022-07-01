@@ -150,6 +150,8 @@ export async function visualize(
         datapoint.price.toNumber(),
         datapoint.liquidity.toNumber(),
       ]);
+
+  babar(datapoints);
 }
 
 export function whirlpool(): OrcaWhirlpoolClient {

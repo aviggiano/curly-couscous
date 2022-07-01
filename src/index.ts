@@ -1,18 +1,11 @@
 import "dotenv/config";
 import express from "express";
 import { Provider } from "@project-serum/anchor";
-import { PublicKey } from "@solana/web3.js";
 import {
   WhirlpoolContext,
   ORCA_WHIRLPOOL_PROGRAM_ID,
   AccountFetcher,
-  TickUtil,
-  TickArrayData,
-  TickArrayUtil,
-  WhirlpoolData,
-  PositionData,
   ORCA_WHIRLPOOLS_CONFIG,
-  collectFeesQuote,
   PriceMath,
   PDAUtil,
 } from "@orca-so/whirlpools-sdk";
@@ -25,62 +18,14 @@ import {
   swap,
 } from "./services/orca-old";
 import config from "./config";
-import { getNFTs, getUsdc, getSol } from "./services/token";
+import { getUsdc, getSol } from "./services/token";
 import * as analytics from "./services/analytics";
 import {
-  Analytics,
   AnalyticsClose,
   AnalyticsOpen,
   AnalyticsSwap,
 } from "./services/analytics";
-
-async function getFees(
-  ctx: WhirlpoolContext,
-  fetcher: AccountFetcher,
-  pool: WhirlpoolData,
-  poolAddress: PublicKey,
-  position: PositionData
-): Promise<{ feesSol: number; feesUsdc: number }> {
-  const tickArrayPdaLower = PDAUtil.getTickArray(
-    ctx.program.programId,
-    poolAddress,
-    TickUtil.getStartTickIndex(position.tickLowerIndex, pool.tickSpacing)
-  );
-  const tickArrayPdaUpper = PDAUtil.getTickArray(
-    ctx.program.programId,
-    poolAddress,
-    TickUtil.getStartTickIndex(position.tickUpperIndex, pool.tickSpacing)
-  );
-
-  const [tickArrayLowerData, tickArrayUpperData] = await Promise.all([
-    fetcher.getTickArray(tickArrayPdaLower.publicKey) as Promise<TickArrayData>,
-    fetcher.getTickArray(tickArrayPdaUpper.publicKey) as Promise<TickArrayData>,
-  ]);
-  const tickLower = TickArrayUtil.getTickFromArray(
-    tickArrayLowerData,
-    position.tickLowerIndex,
-    pool.tickSpacing
-  );
-  const tickUpper = TickArrayUtil.getTickFromArray(
-    tickArrayUpperData,
-    position.tickUpperIndex,
-    pool.tickSpacing
-  );
-
-  const feeQuote = collectFeesQuote({
-    whirlpool: pool,
-    position: position,
-    tickLower,
-    tickUpper,
-  });
-
-  const feesInTokenA = feeQuote.feeOwedA;
-  const feesInTokenB = feeQuote.feeOwedB;
-
-  const feesSol = feesInTokenA.toNumber() / 10 ** solToken.scale;
-  const feesUsdc = feesInTokenB.toNumber() / 10 ** usdcToken.scale;
-  return { feesSol, feesUsdc };
-}
+import { getFees, getPositions } from "./services/orca";
 
 async function main() {
   const provider = Provider.env();
@@ -112,24 +57,13 @@ async function main() {
   );
   console.log(`Pool price ${price.toFixed(4)}`);
 
-  const nfts = await getNFTs();
-
-  const positions = await Promise.all(
-    nfts.map((nft) => {
-      const positionAddress = PDAUtil.getPosition(
-        ORCA_WHIRLPOOL_PROGRAM_ID,
-        new PublicKey(nft)
-      );
-      return fetcher.getPosition(positionAddress.publicKey);
-    })
-  );
-
+  const positions = await getPositions(fetcher);
   const [usdc, sol] = await Promise.all([getUsdc(), getSol()]);
   const total = price.mul(sol).add(usdc).toNumber();
   console.log(`Balance on wallet: ${sol} SOL + ${usdc} USDC (${total} USD)`);
 
   await Promise.all(
-    (positions.filter((position) => position) as PositionData[])
+    positions
       .filter((position) => {
         const isEarningYield =
           position.tickLowerIndex < pool.tickCurrentIndex &&
@@ -239,27 +173,25 @@ async function main() {
   }
 }
 
-console.log("curly-couscous");
-
 const PORT = process.env.PORT || 3000;
 express()
   .get("/", (_req: any, res: any) => res.send({ success: true }))
   .listen(PORT, async () => {
     console.log(`Listening to port ${PORT}`);
 
-    await analytics.init();
+    // await analytics.init();
 
-    (function loop(): unknown {
-      return Promise.resolve()
-        .then(async () => {
-          await main();
-        })
-        .catch((e) => console.error(e))
-        .then(async () => {
-          const timeout = 60e3;
-          console.log(`Waiting ${timeout / 1e3} seconds`);
-          await new Promise((resolve) => setTimeout(resolve, timeout));
-          loop();
-        });
-    })();
+    // (function loop(): unknown {
+    //   return Promise.resolve()
+    //     .then(async () => {
+    //       await main();
+    //     })
+    //     .catch((e) => console.error(e))
+    //     .then(async () => {
+    //       const timeout = 10e3;
+    //       console.log(`Waiting ${timeout / 1e3} seconds`);
+    //       await new Promise((resolve) => setTimeout(resolve, timeout));
+    //       loop();
+    //     });
+    // })();
   });
