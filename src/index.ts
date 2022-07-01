@@ -70,7 +70,7 @@ async function main() {
   );
 
   if (!positions.length) {
-    const amountSol = 1;
+    const amountSol = 0.5;
     await open(amountSol, spaces, price);
   }
 }
