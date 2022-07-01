@@ -90,7 +90,7 @@ express()
         })
         .catch((e) => console.error(e))
         .then(async () => {
-          const timeout = 10e3;
+          const timeout = 60e3;
           console.log(`Waiting ${timeout / 1e3} seconds`);
           await new Promise((resolve) => setTimeout(resolve, timeout));
           loop();
