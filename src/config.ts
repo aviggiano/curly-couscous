@@ -7,6 +7,7 @@ export default {
   strategy: {
     spaces: 4,
     tickSpacing: 64,
+    minSolOnWallet: 0.1,
   },
   sheets: {
     spreadsheetId: process.env.SPREADSHEET_ID!,

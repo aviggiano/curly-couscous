@@ -151,14 +151,14 @@ export async function visualize(
         datapoint.liquidity.toNumber(),
       ]);
 
-  babar(datapoints);
+  console.log(babar(datapoints));
 }
 
 export function whirlpool(): OrcaWhirlpoolClient {
   return new OrcaWhirlpoolClient({ network: OrcaNetwork.MAINNET });
 }
 
-export async function swap(
+export async function swapTokens(
   from: "USDC" | "SOL",
   to: "USDC" | "SOL",
   amount: number,

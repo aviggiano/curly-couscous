@@ -1,4 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
+import Decimal from "decimal.js";
 
 import { solToken, usdcToken } from "@orca-so/sdk/dist/constants/tokens";
 import {
@@ -6,7 +7,6 @@ import {
   collectFeesQuote,
   ORCA_WHIRLPOOL_PROGRAM_ID,
   PDAUtil,
-  Position,
   PositionData,
   TickArrayData,
   TickArrayUtil,
@@ -14,15 +14,19 @@ import {
   WhirlpoolContext,
   WhirlpoolData,
 } from "@orca-so/whirlpools-sdk";
-import { getNFTs } from "./token";
+import { getBalance, getNFTs } from "./token";
+import { closePosition, openPosition, whirlpool } from "./orca-old";
+import * as analytics from "./analytics";
+import { Analytics, AnalyticsClose, AnalyticsOpen } from "./analytics";
 
 export async function getFees(
   ctx: WhirlpoolContext,
   fetcher: AccountFetcher,
   pool: WhirlpoolData,
   poolAddress: PublicKey,
-  position: PositionData
-): Promise<{ feesSol: number; feesUsdc: number }> {
+  position: PositionData,
+  price: Decimal
+): Promise<{ feesSol: number; feesUsdc: number; feesTotal: number }> {
   const tickArrayPdaLower = PDAUtil.getTickArray(
     ctx.program.programId,
     poolAddress,
@@ -61,7 +65,11 @@ export async function getFees(
 
   const feesSol = feesInTokenA.toNumber() / 10 ** solToken.scale;
   const feesUsdc = feesInTokenB.toNumber() / 10 ** usdcToken.scale;
-  return { feesSol, feesUsdc };
+
+  console.log(`Fees: ${feesSol.toFixed(4)} SOL + ${feesUsdc.toFixed(4)} USDC`);
+  const feesTotal = price.toNumber() * feesSol + feesUsdc;
+  console.log(`Fees: ${feesTotal.toFixed(4)} USD`);
+  return { feesSol, feesUsdc, feesTotal };
 }
 
 export async function getPositions(
