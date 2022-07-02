@@ -55,6 +55,7 @@ export async function getSol(): Promise<number> {
 export async function getBalance(
   price: Decimal
 ): Promise<{ usdc: number; sol: number; total: number }> {
+  await new Promise((resolve) => setTimeout(resolve, 10e3));
   let [usdc, sol] = await Promise.all([getUsdc(), getSol()]);
   let total = price.mul(sol).add(usdc).toNumber();
   console.log(`Balance on wallet: ${sol} SOL + ${usdc} USDC (${total} USD)`);
