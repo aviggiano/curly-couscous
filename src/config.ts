@@ -7,7 +7,7 @@ export default {
   strategy: {
     spaces: 2,
     tickSpacing: 64,
-    minSolOnWallet: 0.1,
+    minSolOnWallet: 0.2,
     amountSol: 2,
   },
   sheets: {

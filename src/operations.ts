@@ -63,10 +63,12 @@ export async function open(
   const { usdc, sol, total } = await getBalance(price);
 
   if (sol < amountSol + config.strategy.minSolOnWallet) {
+    console.log("Swapping exceeding USDC for SOL");
     const from = "USDC";
     const to = "SOL";
     const amount =
       price.toNumber() * (amountSol - sol + config.strategy.minSolOnWallet);
+
     await swapTokens(from, to, amount);
 
     const datapoint: AnalyticsSwap = {
