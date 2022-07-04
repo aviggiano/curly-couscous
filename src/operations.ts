@@ -69,40 +69,48 @@ export async function open(
     const amount =
       price.toNumber() * (amountSol - sol + config.strategy.minSolOnWallet);
 
-    await swapTokens(from, to, amount);
+    if (amount > config.strategy.swapMin) {
+      await swapTokens(from, to, amount);
 
-    const datapoint: AnalyticsSwap = {
-      timestamp: new Date(),
-      price: price.toNumber(),
-      sol,
-      usdc,
-      total,
-      amount,
-      from,
-      to,
-      operation: "swap",
-    };
-    await analytics.save(datapoint);
+      const datapoint: AnalyticsSwap = {
+        timestamp: new Date(),
+        price: price.toNumber(),
+        sol,
+        usdc,
+        total,
+        amount,
+        from,
+        to,
+        operation: "swap",
+      };
+      await analytics.save(datapoint);
+    } else {
+      console.log("Swap amount low");
+    }
   } else if (sol > amountSol + config.strategy.minSolOnWallet) {
     console.log("Swapping exceeding SOL for USDC");
     const from = "SOL";
     const to = "USDC";
     const amount = sol - (amountSol + config.strategy.minSolOnWallet);
 
-    await swapTokens(from, to, amount);
+    if (amount > config.strategy.swapMin) {
+      await swapTokens(from, to, amount);
 
-    const datapoint: AnalyticsSwap = {
-      timestamp: new Date(),
-      price: price.toNumber(),
-      sol,
-      usdc,
-      total,
-      amount,
-      from,
-      to,
-      operation: "swap",
-    };
-    await analytics.save(datapoint);
+      const datapoint: AnalyticsSwap = {
+        timestamp: new Date(),
+        price: price.toNumber(),
+        sol,
+        usdc,
+        total,
+        amount,
+        from,
+        to,
+        operation: "swap",
+      };
+      await analytics.save(datapoint);
+    } else {
+      console.log("Swap amount low");
+    }
   }
 
   const { from, to } = await openPosition(whirlpool(), amountSol, spaces);

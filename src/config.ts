@@ -9,6 +9,7 @@ export default {
     tickSpacing: 64,
     minSolOnWallet: 0.2,
     amountSol: 2,
+    swapMin: 0.01,
   },
   sheets: {
     spreadsheetId: process.env.SPREADSHEET_ID!,
