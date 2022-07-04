@@ -17,6 +17,7 @@ import { getFees, getPositions } from "./services/orca";
 import { open, close } from "./operations";
 
 async function main() {
+  return;
   const provider = Provider.env();
   const ctx = WhirlpoolContext.withProvider(
     provider,
