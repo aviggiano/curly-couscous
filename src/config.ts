@@ -5,7 +5,7 @@ export default {
     endpoint: "https://api.mainnet-beta.solana.com",
   },
   strategy: {
-    spaces: 2,
+    spaces: 4,
     tickSpacing: 64,
     minSolOnWallet: 0.2,
     amountSol: 4,
