@@ -8,7 +8,7 @@ export default {
     spaces: 2,
     tickSpacing: 64,
     minSolOnWallet: 0.2,
-    amountSol: 2,
+    amountSol: 4,
     swapMin: 0.01,
   },
   sheets: {
